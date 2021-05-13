@@ -30,3 +30,7 @@ jobs:
 
       - name: Test
         run: go test -v ./...
+
+      - name: Report percent test coverage
+        uses: coverallsapp/github-action@v1.1.2
+        parallel: true
