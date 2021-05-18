@@ -6,6 +6,18 @@
 
 ## Usage
 
+- Explain:
+  - `from` argument: `string`, `array`, `slice`, `struct` or `map`,
+  - `path` argument: `string`, `number`, `array`
+  - `defaultVal` argument: anything you want set it to default return value if `path` not exists
+  - `isReplaceDefaultVal` argument: `bool`, with `true` value, when `path` exists and `value` at that place is `zero value`, `defaultVal` will replace `zero value`.
+
+```go
+func Get(from, path, defaultVal interface{}, isReplaceDefaultVal bool)
+```
+
+- Example
+
 ```go
 package gese
 
@@ -43,7 +55,7 @@ func GetExample() {
 				D: D{
 					E: "hello",
 				},
-				LD: []D{{"e1"}, {"e2"}, {"e3"}},
+				LD: []D{{"e1"}, {"e2"}, {}},
 			},
 		},
 	}
@@ -57,7 +69,7 @@ func GetExample() {
 
 	v5 := gese.Get(a, []string{"B", "C", "LD", "0", "E"})    // e1
 	v6 := gese.Get(a, "B.C.LD.1.E")                          // e2
-	v7 := gese.Get(a, []interface{}{"B", "C", "LD", 2, "E"}) // e3
+	v7 := gese.Get(a, []interface{}{"B", "C", "LD", 2, "E"}, "ed", true) // ed
 
 	// map
 	var m = map[string]interface{}{
