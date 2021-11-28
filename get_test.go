@@ -341,3 +341,27 @@ func TestGet(t *testing.T) {
 		})
 	}
 }
+
+func Test_get(t *testing.T) {
+	type args struct {
+		from           interface{}
+		path           interface{}
+		defaultVal     interface{}
+		replaceZeroVal bool
+		isFirst        bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want interface{}
+	}{
+		{},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := get(tt.args.from, tt.args.path, tt.args.defaultVal, tt.args.replaceZeroVal, tt.args.isFirst); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

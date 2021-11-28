@@ -1,5 +1,7 @@
 # Go Get Set
 
+[![codecov](https://codecov.io/gh/phungvandat/gese/branch/master/graph/badge.svg)](https://codecov.io/gh/phungvandat/gese)
+
 ## Features
 
 - Get: Get the value at `path` from `object`, if the value at `path` not exists or is zero will return the `default value`.
