@@ -127,12 +127,16 @@ func get(from, path, defaultVal interface{}, replaceZeroVal, isFirst bool) inter
 		}
 		return get(val.Interface(), pInfo[1:pLength], defaultVal, replaceZeroVal, false)
 	case reflect.Map:
-		mKeyType := reflect.TypeOf(fVal.Interface()).Key().Kind()
-		mPathType := reflect.TypeOf(firstPInfo.val).Kind()
-		var val reflect.Value
+		var (
+			mKeyType  = reflect.TypeOf(fVal.Interface()).Key().Kind()
+			mPathType = reflect.TypeOf(firstPInfo.val).Kind()
+			val       reflect.Value
+		)
+
 		if mKeyType == mPathType || mKeyType == reflect.Interface {
 			val = fVal.MapIndex(reflect.ValueOf(firstPInfo.val))
 		}
+
 		if !val.IsValid() {
 			if idxNum != nil && mKeyType == reflect.Interface {
 				val = fVal.MapIndex(reflect.ValueOf(*idxNum))

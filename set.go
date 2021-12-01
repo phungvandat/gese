@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	ErrPathNotExists = errors.New("path not exists")
-	ErrInvalidDest   = errors.New("destination must be pointer, map or slice")
-	ErrBadValue      = errors.New("cannot set the value into dest with the path by two mismatched types")
+	ErrPathNotExists       = errors.New("path not exists")
+	ErrInvalidDest         = errors.New("destination must be pointer, map or slice")
+	ErrBadValue            = errors.New("cannot set the value into dest with the path by two mismatched types")
+	ErrMapKeyTypeUnsupport = errors.New("map key type only support: string, int")
 )
 
 func Set(dest, path, val interface{}) error {
@@ -17,7 +18,9 @@ func Set(dest, path, val interface{}) error {
 
 func set(dest, path, val interface{}) error {
 	dVal := reflect.ValueOf(dest)
-	if !dVal.IsValid() || dVal.Type().Kind() != reflect.Ptr {
+	if !dVal.IsValid() ||
+		(dVal.Type().Kind() != reflect.Ptr &&
+			dVal.Type().Kind() != reflect.Map) {
 		return ErrInvalidDest
 	}
 
@@ -76,31 +79,42 @@ func set(dest, path, val interface{}) error {
 
 		return nil
 	case reflect.Map:
+		mVal := ptrVal.MapIndex(reflect.ValueOf(firstPInfo.val))
+		if !mVal.IsValid() {
+			goto InvalidDestLabel
+		}
 
+		if pLength != 1 {
+			return set(mVal.Interface(), pInfo[1:pLength], val)
+		}
+
+		switch ptrVal.Type().Key().Kind() {
+		case reflect.String:
+			ptrVal.SetMapIndex(reflect.ValueOf(firstPInfo.val), reflect.ValueOf(val))
+		case reflect.Int:
+			if firstPInfo.num == nil {
+				goto InvalidDestLabel
+			}
+			ptrVal.SetMapIndex(reflect.ValueOf(*firstPInfo.num), reflect.ValueOf(val))
+		default:
+			return ErrMapKeyTypeUnsupport
+		}
+
+		return nil
 	case reflect.Ptr:
-
 		if ptrVal.IsNil() {
 			ptrVal.Set(reflect.New(ptrVal.Type().Elem()))
 		}
+
 		return set(ptrVal.Interface(), pInfo, val)
 	case reflect.Interface:
-	// case reflect.Bool,
-	// 	reflect.Complex128, reflect.Complex64,
-	// 	reflect.Float32, reflect.Float64,
-	// 	reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int8,
-	// 	reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint8:
-	// 	if reflect.ValueOf(val).Type() != dVal.Type() {
-	// 		goto BadValueLabel
-	// 	}
-
+		// TODO
 	default:
-		goto InvalidLabel
-
+		goto InvalidDestLabel
 	}
-	// return dest, Set(dest, pInfo, setVal)
 
 BadValueLabel:
 	return ErrBadValue
-InvalidLabel:
+InvalidDestLabel:
 	return ErrInvalidDest
 }

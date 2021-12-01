@@ -9,19 +9,6 @@ func TestSet(t *testing.T) {
 	var (
 		destStr1 = "abc"
 		destStr2 = "xyz"
-		m        = map[string]interface{}{
-			"xyz": 1010,
-			"hello_world": map[string]interface{}{
-				"efg": 1919,
-				"5":   "hello",
-			},
-		}
-		f = "abc"
-		e = tE{F: f}
-		d = tD{E: &e, M: m}
-		c = tC{D: d}
-		b = tB{C: &c}
-		a = tA{B: b, V: "1234"}
 	)
 
 	type args struct {
@@ -35,6 +22,66 @@ func TestSet(t *testing.T) {
 		wantErr error
 		want    interface{}
 	}{
+		{
+			name: "invalid_path",
+			args: args{
+				dest:   tATest(),
+				path:   "a..b",
+				setVal: "abc",
+			},
+			wantErr: ErrPathNotExists,
+		},
+		{
+			name: "path_str_not_exists",
+			args: args{
+				dest: func() *string {
+					val := "abc"
+					return &val
+				}(),
+				path:   "abc",
+				setVal: "123",
+			},
+			wantErr: ErrPathNotExists,
+		},
+		{
+			name: "bad_value_for_str",
+			args: args{
+				dest: func() *string {
+					val := "abc"
+					return &val
+				}(),
+				path:   "1",
+				setVal: "123",
+			},
+			wantErr: ErrBadValue,
+		},
+		{
+			name: "path_struct_not_exists_with_number",
+			args: args{
+				dest:   tATest(),
+				path:   "1",
+				setVal: "123",
+			},
+			wantErr: ErrPathNotExists,
+		},
+		{
+			name: "path_struct_not_exists",
+			args: args{
+				dest:   tATest(),
+				path:   "xyz",
+				setVal: "123",
+			},
+			wantErr: ErrPathNotExists,
+		},
+		{
+			name: "bad_type_struct",
+			args: args{
+				dest:   tATest(),
+				path:   "B",
+				setVal: "123",
+			},
+			wantErr: ErrBadValue,
+		},
 		{
 			name: "failed_by_not_ptr",
 			args: args{
@@ -69,7 +116,7 @@ func TestSet(t *testing.T) {
 		{
 			name: "struct_str_path_1",
 			args: args{
-				dest: &a,
+				dest: tATest(),
 				path: "B",
 				setVal: tB{
 					C: &tC{
@@ -89,7 +136,7 @@ func TestSet(t *testing.T) {
 		{
 			name: "struct_str_path_2",
 			args: args{
-				dest:   &a,
+				dest:   tATest(),
 				path:   "B.C",
 				setVal: &tC{},
 			},
@@ -124,7 +171,7 @@ func TestSet(t *testing.T) {
 		{
 			name: "struct_str_path_4",
 			args: args{
-				dest: &a,
+				dest: tATest(),
 				path: "B.C.D.E",
 				setVal: &tE{
 					F: "f123",
@@ -137,38 +184,48 @@ func TestSet(t *testing.T) {
 							E: &tE{
 								F: "f123",
 							},
+							M: map[string]interface{}{
+								"xyz": 1010,
+								"hello_world": map[string]interface{}{
+									"efg": 1919,
+									"5":   "hello",
+								},
+							},
 						},
 					},
 				},
 				V: "1234",
 			},
 		},
-		// {
-		// 	name: "struct_str_path_5",
-		// 	args: args{
-		// 		dest: &a,
-		// 		path: "B.C.D.M.hello_world.efg",
-		// 		setVal: &tE{
-		// 			F: "f123",
-		// 		},
-		// 	},
-		// 	want: &tA{
-		// 		B: tB{
-		// 			C: &tC{
-		// 				D: tD{
-		// 					M: map[string]interface{}{
-		// 						"xyz": 1010,
-		// 						"hello_world": map[string]interface{}{
-		// 							"efg": "f123",
-		// 							"5":   "hello",
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 		V: "1234",
-		// 	},
-		// },
+		{
+			name: "struct_str_path_5",
+			args: args{
+				dest: tATest(),
+				path: "B.C.D.M.hello_world.efg",
+				setVal: &tE{
+					F: "f123",
+				},
+			},
+			want: &tA{
+				B: tB{
+					C: &tC{
+						D: tD{
+							E: &tE{F: "abc"},
+							M: map[string]interface{}{
+								"xyz": 1010,
+								"hello_world": map[string]interface{}{
+									"efg": &tE{
+										F: "f123",
+									},
+									"5": "hello",
+								},
+							},
+						},
+					},
+				},
+				V: "1234",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -182,4 +239,23 @@ func TestSet(t *testing.T) {
 			}
 		})
 	}
+}
+
+func tATest() *tA {
+	var (
+		m = map[string]interface{}{
+			"xyz": 1010,
+			"hello_world": map[string]interface{}{
+				"efg": 1919,
+				"5":   "hello",
+			},
+		}
+		f = "abc"
+		e = tE{F: f}
+		d = tD{E: &e, M: m}
+		c = tC{D: d}
+		b = tB{C: &c}
+		a = tA{B: b, V: "1234"}
+	)
+	return &a
 }

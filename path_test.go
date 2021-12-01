@@ -6,9 +6,8 @@ import (
 )
 
 func Test_detectPath(t *testing.T) {
-	var (
-		n1 = 1
-	)
+	var n1 = 1
+
 	type args struct {
 		path interface{}
 	}
@@ -125,6 +124,76 @@ func Test_detectPath(t *testing.T) {
 				path: [2]interface{}{"A", struct{}{}},
 			},
 			isValid: false,
+		},
+		{
+			name: "pass_interface",
+			args: args{
+				path: func() interface{} {
+					var a = "abc"
+					return &a
+				}(),
+			},
+			want: []pathItem{
+				{
+					val: "abc",
+					str: "abc",
+				},
+			},
+		},
+		{
+			name: "failed_zero_string",
+			args: args{
+				path: "A..B",
+			},
+		},
+		{
+			name: "failed_empty_arr",
+			args: args{
+				path: []int{},
+			},
+		},
+		{
+			name: "pass_uint_arr",
+			args: args{
+				path: []uint{1},
+			},
+			want: []pathItem{
+				{
+					val: 1,
+					num: func() *int {
+						n := 1
+						return &n
+					}(),
+					str: "1",
+				},
+			},
+		},
+		{
+			name: "pass_uint",
+			args: args{
+				path: uint(1),
+			},
+			want: []pathItem{
+				{
+					val: 1,
+					num: func() *int {
+						n := 1
+						return &n
+					}(),
+					str: "1",
+				},
+			},
+		},
+		{
+			name: "pass_unsupport",
+			args: args{
+				path: 1.1,
+			},
+			want: []pathItem{
+				{
+					val: 1.1,
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
