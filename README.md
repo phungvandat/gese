@@ -1,6 +1,8 @@
 # Go Get Set
 
 [![codecov](https://codecov.io/gh/phungvandat/gese/branch/master/graph/badge.svg)](https://codecov.io/gh/phungvandat/gese)
+![test status](https://github.com/phungvandat/gese/actions/workflows/test.yml/badge.svg?branch=master)
+[![MIT license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
 
